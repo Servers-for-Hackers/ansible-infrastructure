@@ -1,0 +1,29 @@
+---
+- name: Perform Safe Upgrade
+  apt: upgrade=safe update_cache=yes
+
+- name: Install Server Basics
+  apt: pkg={{ item }} state=installed update_cache=true
+  with_items:
+    - acl
+    - unattended-upgrades
+    - policykit-1
+    - ntp
+    - wget
+    - curl
+    - vim
+    - ack-grep
+    - git
+    - unzip
+    - htop
+    - tmux
+  notify:
+    - Start NTP
+
+- name: Add Periodic Configuration
+  copy: src=10periodic dest=/etc/apt/apt.conf.d/10periodic owner=root group=root
+
+- name: Add Unattended Upgrade Configuration
+  copy: src=50unattended-upgrades dest=/etc/apt/apt.conf.d/50unattended-upgrades owner=root group=root
+  notify:
+   - Restart Unattended Upgrades

@@ -1,0 +1,8 @@
+---
+# vars file for aws
+access_key: 'AAA'
+secret_key: 'BBB'
+region: us-east-1
+format: json
+bucket_name: some_bucket
+db_name: some_db

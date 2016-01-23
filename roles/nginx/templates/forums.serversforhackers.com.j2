@@ -1,0 +1,41 @@
+upstream discourse {
+    server 127.0.0.1:8080;
+}
+
+server {
+    # Enforce the use of HTTPS
+    listen 80 default_server;
+    server_name {{ domain }};
+    return 301 https://{{ domain }}$request_uri;
+}
+
+server {
+    listen 443 default_server ssl;
+
+    root /var/www/{{ domain }}/public;
+    index index.html index.htm;
+
+    access_log /var/log/nginx/{{ domain }}.log;
+    error_log  /var/log/nginx/{{ domain }}-error.log error;
+
+    server_name {{ domain }};
+
+    charset utf-8;
+
+    ssl_certificate           {{ ssl_wildcard_crt }};
+    ssl_certificate_key       {{ ssl_key }};
+    include h5bp/directive-only/ssl.conf;
+
+    location = /favicon.ico { log_not_found off; access_log off; }
+    location = /robots.txt  { log_not_found off; access_log off; }
+
+    location / {
+        include proxy_params;
+        proxy_pass http://discourse;
+
+        proxy_redirect off;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}

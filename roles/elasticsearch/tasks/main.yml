@@ -1,0 +1,51 @@
+---
+- name: Install PIP
+  apt: pkg=python-pip state=installed update_cache=true
+
+- name: Install Python HTTPLib
+  pip: name=httplib2 state=present
+
+- name: Install Java (OpenJDK)
+  apt: pkg=openjdk-7-jdk state=installed update_cache=yes
+
+- name: Add Elasticsearch Key
+  apt_key: url='http://packages.elasticsearch.org/GPG-KEY-elasticsearch' state=present
+
+- name: Add Elasticsearch Repository
+  apt_repository: repo='deb http://packages.elasticsearch.org/elasticsearch/1.4/debian stable main' state=present
+
+- name: Install Elasticsearch
+  apt: pkg=elasticsearch state=installed update_cache=yes
+
+# Run sudo update-rc.d elasticsearch defaults 95 10
+- name: Enable Elasticsearch (Start on boot)
+  service: name=elasticsearch enabled=yes
+  notify:
+   - Start Elasticsearch
+
+- name: Configure Elasticsearch
+  template: src=elasticsearch.yml.j2 dest=/etc/elasticsearch/elasticsearch.yml
+  tags:
+    - configs
+  notify:
+   - Restart Elasticsearch
+
+- name: Check If Index Exists
+  uri: url='http://localhost:9200/{{ index_name }}'
+       method=HEAD
+       status_code=200,404
+  register: index_status
+
+# - name: Create SFH Index
+#   uri: url='http://localhost:9200/{{ index_name }}'
+#        method=PUT
+#        status_code=200
+#   when: index_status.status == 404
+
+- name: Create SFH Index with Mapping
+  uri: url='http://localhost:9200/{{ index_name }}'
+       method=POST
+       status_code=200
+       body='{{ lookup('file','content_mapping.json') }}'
+       HEADER_Content-Type="application/json"
+  when: index_status.status == 404

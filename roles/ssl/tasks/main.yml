@@ -1,0 +1,14 @@
+---
+- name: Create SFH SSL Directry
+  file: dest=/etc/ssl/sfh mode=0700 state=directory owner=root group=root
+  register: ssldir
+
+- name: Upload Unencrypted Key File
+  when: ssldir|success
+  no_log: True
+  copy: content="{{ ssl_key }}" dest=/etc/ssl/sfh/sfh.key owner=root group=root
+
+- name: Upload Unencrypted Cert File
+  when: ssldir|success
+  no_log: True
+  copy: content="{{ ssl_crt }}" dest=/etc/ssl/sfh/sfh.crt owner=root group=root

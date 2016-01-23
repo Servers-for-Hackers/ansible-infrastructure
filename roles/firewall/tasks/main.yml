@@ -1,0 +1,13 @@
+---
+- name: Install Iptables Persistent
+  apt: pkg=iptables-persistent state=installed update_cache=true
+  notify:
+    - Start Iptables Persistent
+
+- name: Set Firewall Rules
+  copy: src={{ iptables_file }} dest=/etc/iptables/rules.v4 owner=root group=root mode=644
+  notify:
+    - Restart Iptables Persistent
+
+- name: Ensure Iptables Persistent Restarted
+  service: name=iptables-persistent state=restarted

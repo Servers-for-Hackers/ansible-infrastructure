@@ -1,0 +1,14 @@
+---
+- hosts: all
+  sudo: yes
+  user: ubuntu
+  roles:
+   - base
+   - fail2ban
+   - firewall
+   - nginx
+   - php7
+   - ssh
+   - ssl
+   - swap
+   - user

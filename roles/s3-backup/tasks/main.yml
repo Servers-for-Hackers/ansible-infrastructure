@@ -1,0 +1,26 @@
+---
+# tasks file for aws
+- name: Install PIP
+  apt: pkg=python-pip state=installed update_cache=true
+
+- name: Install AWS CLI
+  pip: name=awscli state=present
+
+- name: Create User "postgres" Configuration Location
+  file: path=/var/lib/postgresql/.aws state=directory owner=postgres group=postgres
+
+- name: Create User "postgres" Backup Location
+  file: path=/var/lib/postgresql/backup state=directory owner=postgres group=postgres
+
+- name: Add AWS Configuration for postgres User
+  template: src=config.j2 dest=/var/lib/postgresql/.aws/config owner=postgres group=postgres
+
+- name: Add AWS/DB Backup Script
+  template: src=backup.sh.j2 dest=/var/lib/postgresql/backup/backup.sh owner=postgres group=postgres mode="ug+rwx,o=r"
+
+- name: Add Crontask to Backup Database
+  cron: name="Backup Database"
+        minute='0' hour='*/12'
+        user="postgres"
+        job="/var/lib/postgresql/backup/backup.sh > /dev/null 2>&1"
+        cron_file="backupdb"

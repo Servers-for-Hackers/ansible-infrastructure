@@ -1,0 +1,16 @@
+---
+- name: Create Admin User
+  user: name=admin password={{admin_password}} groups=sudo append=yes shell=/bin/bash
+
+- name: Add Admin Authorized Key
+  authorized_key: user=admin
+                  key="{{ common_public_key }}"
+                  state=present
+
+- name: Create Deploy User
+  user: name=deploy password={{deploy_password}} groups=www-data append=yes shell=/bin/bash
+
+- name: Add Admin Authorized Key
+  authorized_key: user=deploy
+                  key="{{ common_public_key }}"
+                  state=present

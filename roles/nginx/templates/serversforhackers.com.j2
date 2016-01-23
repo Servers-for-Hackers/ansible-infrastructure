@@ -1,0 +1,205 @@
+server {
+    # Enforce the use of HTTPS
+    listen 80 default_server;
+    server_name *.{{ domain }};
+    return 301 https://{{ domain }}$request_uri;
+}
+
+server {
+    listen 443 default_server ssl;
+
+    root /var/www/{{ domain }}/public;
+    index index.html index.htm index.php;
+
+    access_log /var/log/nginx/{{ domain }}.log;
+    error_log  /var/log/nginx/{{ domain }}-error.log error;
+
+    server_name {{ domain }};
+
+    charset utf-8;
+
+    include h5bp/basic.conf;
+
+    ssl_certificate           {{ ssl_crt }};
+    ssl_certificate_key       {{ ssl_key }};
+    include h5bp/directive-only/ssl.conf;
+
+    location /book {
+        return 301 http://book.serversforhackers.com;
+    }
+
+    location = /feed.xml {
+        return 301 $scheme://$host/feed;
+    }
+
+    location = /editions/2014/02/25/vagrant-apache/ {
+        return 301 $scheme://$host/getting-off-of-mamp/;
+    }
+
+     location = /editions/2014/03/11/logs/ {
+        return 301 $scheme://$host/log-rotate/;
+    }
+
+    location = /editions/2014/03/25/nginx/ {
+        return 301 $scheme://$host/nginx-loadbalancer/;
+    }
+
+    location = /editions/2014/04/22/hosts-dns-multi-tenancy/ {
+        return 301 $scheme://$host/server-for-multi-tenancy/;
+    }
+
+    location = /editions/2014/06/17/more-security/ {
+        return 301 $scheme://$host/firewall-auto-updating/;
+    }
+
+    location /battling-selinux {
+        return 301 $scheme://$host/video/battling-selinux-cast;
+    }
+
+    location /deploy-envoy {
+        return 301 $scheme://$host/video/deploying-with-envoy-cast;
+    }
+
+    location /deploying-with-envoy {
+        return 301 $scheme://$host/video/deploying-with-envoy-cast;
+    }
+
+    location /web-apps {
+        return 301 $scheme://$host/hosting-web-applications;
+    }
+
+    location /apache-proxy-fcgi {
+        return 301 $scheme://$host/proxying-to-fastcgi-in-ubuntuapache-24;
+    }
+
+    location /linux-acl {
+        return 301 $scheme://$host/beyond-permissions-linux-acls;
+    }
+
+    location /nginx-from-src {
+        return 301 $scheme://$host/compiling-third-party-modules-into-nginx;
+    }
+
+    location /pgsql {
+        return 301 $scheme://$host/using-postgresql;
+    }
+
+    location /pm2 {
+        return 301 $scheme://$host/node-process-management-with-pm2;
+    }
+
+    location /mailcatcher {
+        return 301 $scheme://$host/setting-up-mailcatcher;
+    }
+
+    location /getting-started-with-ansible {
+        return 301 $scheme://$host/an-ansible-tutorial;
+    }
+
+    location /process-monitoring {
+        return 301 $scheme://$host/monitoring-processes-with-supervisord;
+    }
+
+    location /haproxy-ssl-termation-pass-through {
+        return 301 $scheme://$host/using-ssl-certificates-with-haproxy;
+    }
+
+    location /haproxy {
+        return 301 $scheme://$host/load-balancing-with-haproxy;
+    }
+
+    location = /initial-security {
+        return 301 $scheme://$host/initial-security-setup;
+    }
+
+    location = /initial-security/ {
+        return 301 $scheme://$host/initial-security-setup;
+    }
+
+    location /firewall-auto-updating {
+        return 301 $scheme://$host/firewalls-and-auto-updating;
+    }
+
+    location /permissions-users {
+        return 301 $scheme://$host/permissions-and-user-management;
+    }
+
+    location /server-for-multi-tenancy {
+        return 301 $scheme://$host/server-setup-for-multi-tenancy-applications;
+    }
+
+    location /hosts-file-dns {
+        return 301 $scheme://$host/hosts-file-and-dns;
+    }
+
+    location /ssl-certs {
+        return 301 $scheme://$host/self-signed-ssl-certificates;
+    }
+
+    location /nginx-start {
+        return 301 $scheme://$host/getting-started-with-nginx;
+    }
+
+    location /nginx-loadbalancer {
+        return 301 $scheme://$host/using-nginx-as-a-load-balancer;
+    }
+
+    location /log-rotate {
+        return 301 $scheme://$host/managing-logs-with-logrotate;
+    }
+
+    location /apache-vhost {
+        return 301 $scheme://$host/configuring-apache-virtual-hosts;
+    }
+
+    # Editions and Articles get combined
+    location ~ "^/(editions|articles)/[0-9]{4}/[0-9]{2}/[0-9]{2}/(?<mdfile>.*)/?$" {
+        return 301 $scheme://$host/$mdfile;
+    }
+
+    # Emails are separate still, but no date in URI
+    location ~ "^/emails/[0-9]{4}/[0-9]{2}/[0-9]{2}/(?<mdfile>.*)/?$" {
+        return 301 $scheme://$host/emails/$mdfile;
+    }
+
+
+    location / {
+        try_files $uri $uri/ /index.php$is_args$args;
+    }
+
+
+    location = /favicon.ico { log_not_found off; access_log off; }
+    location = /robots.txt  { log_not_found off; access_log off; }
+
+    location ~ ^/index\.php(/|$) {
+
+        rewrite ^(.+)/+$ $1 permanent;
+
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index index.php;
+        include fastcgi.conf;
+        fastcgi_param DOCUMENT_ROOT /serversforhackers.com/public;
+        fastcgi_param SCRIPT_FILENAME /serversforhackers.com/public$fastcgi_script_name;
+        fastcgi_param APPENV {{ app_env }};
+    }
+
+    error_page 404 /index.php;
+
+    # Nginx status
+    # Nginx Plus only
+    #location /status {
+    #    status;
+    #    status_format json;
+    #    allow 127.0.0.1;
+    #    deny all;
+    #}
+
+    location ~ ^/(fpmstatus|fpmping)$ {
+        access_log off;
+        allow 127.0.0.1;
+        deny all;
+        include fastcgi.conf;
+        fastcgi_pass 127.0.0.1:9000;
+    }
+}

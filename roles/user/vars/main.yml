@@ -1,0 +1,4 @@
+---
+admin_password: some_password
+deploy_password: another_password
+common_public_key: some_public_key

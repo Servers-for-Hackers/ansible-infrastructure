@@ -1,0 +1,77 @@
+---
+- name: Create and Set Permissions of Chroot Directory
+  file: path=/var/www state=directory owner=www-data group=www-data
+
+- name: Create and Set Permissions of Chroot Log Directory
+  file: path=/var/www/log state=directory owner=www-data group=www-data
+
+- name: Create and Set Permissions Chroot TMP Directory
+  file: path=/var/www/tmp state=directory owner=www-data group=www-data
+
+- name: Create and Set Permissions Chroot Session Directory
+  file: path=/var/www/tmp/sessions state=directory owner=www-data group=www-data
+
+- name: Create and Set Permissions Chroot etc Directory
+  file: path=/var/www/etc state=directory owner=www-data group=www-data
+
+- name: Copy Localtime File to Chroot
+  shell: cp /etc/localtime /var/www/etc/localtime
+
+- name: Create Chroot /usr/share
+  file: path=/var/www/usr/share/ state=directory owner=www-data group=www-data
+
+- name: Copy Zoneinfo Directory to Chroot
+  shell: cp -r /usr/share/zoneinfo /var/www/usr/share/zoneinfo
+
+
+# Reference: http://stackoverflow.com/questions/2223620/php5-fails-to-resolve-hostnames-when-not-in-interactive-mode
+
+- name: Copy Resolv to Chroot
+  shell: cp /etc/resolv.conf /var/www/etc/resolv.conf
+
+- name: Copy Nsswitch to Chroot
+  shell: cp /etc/nsswitch.conf /var/www/etc/nsswitch.conf
+
+- name: Copy Groups to Chroot
+  shell: echo $(cat /etc/group|grep $webgroup) > /var/www/etc/group
+
+- name: Copy Passwd to Chroot
+  shell: echo $(cat /etc/passwd|grep $webuser) > /var/www/etc/passwd
+
+- name: Copy Services to Chroot
+  shell: cp /etc/services /var/www/etc/services
+
+- name: Copy Protocols to Chroot
+  shell: cp /etc/protocols /var/www/etc/protocols
+
+- name: Copy Host.conf to Chroot
+  shell: cp /etc/host.conf /var/www/etc/host.conf
+
+- name: Copy Hosts to Chroot
+  shell: cp /etc/hosts /var/www/etc/hosts
+
+- name: Copy Networks to Chroot
+  shell: cp /etc/networks /var/www/etc/networks
+
+- name: Create Chroot /lib
+  file: path=/var/www/lib/ state=directory owner=www-data group=www-data
+
+- name: Copy Libraries from /lib/x86_64-linux-gnu
+  shell: cp -r /lib/x86_64-linux-gnu /var/www/lib
+
+# Reference: http://www.cyberciti.biz/faq/howto-run-nginx-in-a-chroot-jail/
+
+- name: Create Chroot /dev
+  file: path=/var/www/dev state=directory owner=www-data group=www-data
+
+- name: Mknod /dev/null to Chroot
+  shell: /bin/mknod -m 0444 /var/www/dev/null c 1 3
+  ignore_errors: yes
+
+- name: Mknod /dev/random to Chroot
+  shell: /bin/mknod -m 0444 /var/www/dev/random c 1 8
+  ignore_errors: yes
+
+- name: Mknod /dev/urandom to Chroot
+  shell: /bin/mknod -m 0444 /var/www/dev/urandom c 1 9
+  ignore_errors: yes

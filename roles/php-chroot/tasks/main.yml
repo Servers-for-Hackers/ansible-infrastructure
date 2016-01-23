@@ -1,0 +1,48 @@
+---
+- name: Add PHP Repository
+  apt_repository: repo='ppa:ondrej/php5-5.6' state=present
+  register: ppaphp
+
+- name: Install PHP and PHP-FPM
+  register: phpinstall
+  when: ppaphp|success
+  apt: pkg={{ item }} state=installed update_cache=true
+  with_items:
+   - php5-fpm
+   - php5-cli
+   - php5-pgsql
+   - php5-mysql
+   - php5-sqlite
+   - php5-curl
+   - php5-gd
+   - php5-mcrypt
+   - php5-memcached
+   - php5-intl
+  notify:
+    - Start PHP-FPM
+
+- name: Install Composer
+  shell: curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin creates=/usr/local/bin/composer
+
+- name: Rename composer.phar to composer
+  shell: mv /usr/local/bin/composer.phar /usr/local/bin/composer creates=/usr/local/bin/composer
+
+- name: Make Composer Executable
+  shell: chmod a+x /usr/local/bin/composer
+
+- name: Composer Self Update
+  shell: composer self-update
+
+- name: Chroot Settings
+  include: chroot.yml
+
+- name: Add PHP-FPM PHP Configuration
+  template: src=php.ini.j2 dest=/etc/php5/fpm/php.ini owner=root group=root
+  notify:
+    - Restart PHP-FPM
+
+- name: Add Default Resource Pool
+  when: phpinstall|success
+  template: src=www.conf.j2 dest=/etc/php5/fpm/pool.d/www.conf owner=root group=root mode=644
+  notify:
+    - Restart PHP-FPM

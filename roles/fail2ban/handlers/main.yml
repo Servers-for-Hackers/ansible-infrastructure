@@ -1,0 +1,6 @@
+---
+- name: Start Fail2Ban
+  service: name=fail2ban state=started
+
+- name: Restart Fail2Ban
+  service: name=fail2ban state=restarted

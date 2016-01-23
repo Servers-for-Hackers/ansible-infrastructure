@@ -1,0 +1,6 @@
+---
+- name: Start Pgsql
+  service: name=postgresql state=started
+
+- name: Restart Pgsql
+  service: name=postgresql state=restarted

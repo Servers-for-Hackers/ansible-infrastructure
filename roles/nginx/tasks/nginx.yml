@@ -1,0 +1,23 @@
+---
+- name: Add Nginx Repository
+  apt_repository: repo='ppa:nginx/stable' state=present
+
+- name: Install Nginx
+  apt: pkg=nginx state=installed update_cache=true
+  notify:
+    - Start Nginx
+
+- name: Create Web root
+  file: dest=/var/www/my-app/public mode=775 state=directory owner=www-data group=www-data
+  ignore_errors: yes
+
+- name: Add Site Config
+  template: src=my-app.conf.j2 dest=/etc/nginx/sites-available/my-app.conf owner=root group=root
+
+- name: Enable Site Config
+  file: src=/etc/nginx/sites-available/my-app.conf dest=/etc/nginx/sites-enabled/my-app.conf state=link
+  register: config_added
+ 
+- name: Reload Nginx
+  when: config_added.changed == True
+  service: name=nginx state=reloaded

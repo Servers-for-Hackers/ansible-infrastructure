@@ -1,0 +1,5 @@
+---
+- name: Install Beanstalkd
+  apt: pkg=beanstalkd state=installed update_cache=true
+  notify:
+   - Start Beanstalkd

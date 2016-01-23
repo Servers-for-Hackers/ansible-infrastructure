@@ -1,0 +1,5 @@
+---
+- name: Set SSHD Configuration
+  copy: src=sshd_config dest=/etc/ssh/sshd_config owner=root group=root mode=664
+  notify:
+    - Restart SSHD

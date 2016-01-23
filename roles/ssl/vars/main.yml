@@ -1,0 +1,6 @@
+---
+ssl_key: |
+    KEY STUFF HERE
+
+ssl_crt: |
+    CERT STUFF HERE
